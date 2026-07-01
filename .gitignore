@@ -1,0 +1,18 @@
+# Ignore the environment variables file containing secret keys
+.env
+
+# Ignore Python cache directories
+__pycache__/
+*.pyc
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE settings
+.vscode/
+
+# Ignore extra files not in the required repo structure
+rag_orchestrator.py
+train_and_convert.py
+healthaiot-1.ipynb

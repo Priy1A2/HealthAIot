@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthAIoT - Patient Dashboard</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ONNX Runtime Web CDN to run the model locally in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen text-gray-900">
+
+    <header class="bg-indigo-600 text-white shadow-md py-4">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tight">HealthAIoT</h1>
+            <span class="text-sm bg-indigo-500 px-3 py-1 rounded-full font-semibold">Local TinyML Mode Active</span>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Left Column: Input Form -->
+        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <h2 class="text-xl font-bold mb-4 text-indigo-700">Health & Lifestyle Questionnaire</h2>
+            <form id="healthForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">High Blood Pressure?</label>
+                        <select id="HighBP" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">High Cholesterol?</label>
+                        <select id="HighChol" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Cholesterol Checked (Last 5 Yrs)?</label>
+                        <select id="CholCheck" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Body Mass Index (BMI)</label>
+                        <input type="number" id="BMI" value="28.0" step="0.1" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Smoked >100 Cigarettes?</label>
+                        <select id="Smoker" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">History of Stroke?</label>
+                        <select id="Stroke" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Heart Disease/Attack?</label>
+                        <select id="HeartDiseaseorAttack" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Physical Activity (Last 30 Days)?</label>
+                        <select id="PhysActivity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Consume Fruits Daily?</label>
+                        <select id="Fruits" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Consume Veggies Daily?</label>
+                        <select id="Veggies" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Heavy Alcohol Consumer?</label>
+                        <select id="HvyAlcoholConsump" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Any Healthcare Plan?</label>
+                        <select id="AnyHealthcare" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">Yes</option>
+                            <option value="0">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Could Not Afford Doctor?</label>
+                        <select id="NoDocbcCost" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">General Health (1-5)</label>
+                        <select id="GenHlth" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="1">1 (Excellent)</option>
+                            <option value="2">2 (Very Good)</option>
+                            <option value="3">3 (Good)</option>
+                            <option value="4" selected>4 (Fair)</option>
+                            <option value="5">5 (Poor)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Mental Health (0-30 days)</label>
+                        <input type="number" id="MentHlth" value="0" min="0" max="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Physical Health (0-30 days)</label>
+                        <input type="number" id="PhysHlth" value="0" min="0" max="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Difficulty Walking/Climbing Stairs?</label>
+                        <select id="DiffWalk" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Biological Sex</label>
+                        <select id="Sex" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                            <option value="0">Female</option>
+                            <option value="1">Male</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Age Category (1-13)</label>
+                        <input type="number" id="Age" value="9" min="1" max="13" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Education (1-6)</label>
+                        <input type="number" id="Education" value="5" min="1" max="6" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Income (1-8)</label>
+                        <input type="number" id="Income" value="6" min="1" max="8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2">
+                    </div>
+                </div>
+
+                <button type="button" onclick="runTinyMLInference()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition duration-150">
+                    Run Local TinyML Prediction
+                </button>
+            </form>
+        </section>
+
+        <!-- Right Column: Interactive Results dashboard -->
+        <section class="space-y-6">
+            <!-- TinyML Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">On-Device Risk Classification</h2>
+                <div class="flex items-center space-x-6 mt-2">
+                    <div class="relative w-28 h-28 flex items-center justify-center rounded-full bg-gray-100 border-4 border-indigo-200">
+                        <span id="riskPercentage" class="text-2xl font-black text-indigo-600">--%</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Classification Status</p>
+                        <p id="riskClass" class="text-lg font-bold text-gray-400">Waiting for Inference...</p>
+                        <p class="text-xs text-gray-400 mt-1">Calculated locally on-device without network latency</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agentic Explanation Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Agentic Clinical Explanation</h2>
+                    <button id="ragBtn" onclick="fetchRAGReport()" disabled class="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-bold py-2 px-4 rounded-lg transition">
+                        Generate RAG Report
+                    </button>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 min-h-[250px] max-h-[400px] overflow-y-auto">
+                    <div id="ragReport" class="text-sm text-gray-500 whitespace-pre-wrap leading-relaxed">
+                        Please run the local prediction first, then click "Generate RAG Report" to query Supabase and synthesize clinical advice.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let session = null;
+        let lastPredictionResult = null;
+        let lastFeatures = null;
+
+        // Load the ONNX model as soon as the page opens
+        async function loadModel() {
+            try {
+                // Initialize ONNX inference session pointing to local directory
+                session = await ort.InferenceSession.create('./diabetes_predictor.onnx');
+                console.log("ONNX Model loaded successfully in browser.");
+            } catch (e) {
+                console.error("Failed to load local ONNX model:", e);
+                alert("Could not load the local diabetes_predictor.onnx model. Please make sure it is saved in the same directory as this index.html file.");
+            }
+        }
+
+        async function runTinyMLInference() {
+            if (!session) {
+                alert("Model is still loading or could not be loaded.");
+                return;
+            }
+
+            // Extract values strictly in the matching index order of training columns
+            const orderOfFeatures = [
+                'HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 
+                'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 
+                'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth', 
+                'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income'
+            ];
+
+            const floatArray = [];
+            lastFeatures = {};
+
+            orderOfFeatures.forEach(feat => {
+                const value = parseFloat(document.getElementById(feat).value);
+                floatArray.push(value);
+                lastFeatures[feat] = value;
+            });
+
+            // Convert array into standard float32 Tensor shape [1, 21]
+            const inputTensor = new ort.Tensor('float32', Float32Array.from(floatArray), [1, 21]);
+            const feeds = { input: inputTensor };
+
+            try {
+                // Execute inference local inside browser
+                const outputs = await session.run(feeds);
+                const probabilities = outputs.probabilities.data; // Float32Array containing probabilities for class [0, 1]
+                const riskProbability = probabilities[1]; // Index 1 is Class 1 (diabetic risk)
+
+                lastPredictionResult = riskProbability;
+
+                // Update UI dashboard
+                document.getElementById('riskPercentage').innerText = (riskProbability * 100).toFixed(2) + "%";
+                const riskClass = document.getElementById('riskClass');
+                
+                if (riskProbability >= 0.5) {
+                    riskClass.innerText = "High Risk Level Identified";
+                    riskClass.className = "text-lg font-bold text-red-600";
+                } else {
+                    riskClass.innerText = "Normal / Low Risk Level";
+                    riskClass.className = "text-lg font-bold text-emerald-600";
+                }
+
+                // Enable the RAG button once prediction is calculated
+                document.getElementById('ragBtn').disabled = false;
+            } catch (err) {
+                console.error("Inference failed:", err);
+            }
+        }
+
+        async function fetchRAGReport() {
+            if (lastPredictionResult === null || lastFeatures === null) return;
+
+            const ragReportDiv = document.getElementById('ragReport');
+            ragReportDiv.innerText = "Querying Supabase and running synthesis via Gemini AI...";
+
+            try {
+                // Send payload to our local Flask backend
+                const response = await fetch('http://127.0.0.1:5000/api/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        risk_score: lastPredictionResult,
+                        features: lastFeatures
+                    })
+                });
+
+                const data = await response.json();
+                if (data.report) {
+                    ragReportDiv.innerText = data.report;
+                    ragReportDiv.className = "text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-sans";
+                } else {
+                    ragReportDiv.innerText = "Error: Backend returned unexpected response.";
+                }
+            } catch (e) {
+                console.error("RAG request failed:", e);
+                ragReportDiv.innerText = "Failed to connect to local backend. Make sure server.py is running on port 5000.";
+            }
+        }
+
+        window.onload = loadModel;
+    </script>
+</body>
+</html>
